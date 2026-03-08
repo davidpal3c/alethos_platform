@@ -3,6 +3,13 @@
 context/
 docs/
 tasks/
+
+
+context/
+.DS_Store
+**/.DS_Store
+
+
 workload-specific docs/
 
 .env
