@@ -104,7 +104,7 @@
     "layers": [
       {
         "layer": "Base OS / Boot",
-        "runs_on": "Intel 520 240GB SATA SSD",
+        "runs_on": "Intel SATA SSD RAID1 (Intel SSD Pro 1500 180GB + Intel SSD 520 180GB)",
         "purpose": "Stable boot + OS + core system services",
         "principle": "Minimize churn; keep clean and recoverable"
       },

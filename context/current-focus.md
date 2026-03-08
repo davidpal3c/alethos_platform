@@ -55,9 +55,17 @@ Focus areas:
 
 # Active Tasks
 
+Immediate focus:
+
 TASK-0001 — Ubuntu Server installation and disk partition plan  
 TASK-0002 — Storage tier mount layout  
+
+Queued within current phase:
+
 TASK-0003 — k3s bootstrap  
+
+Later phases:
+
 TASK-0004 — Observability stack baseline  
 TASK-0005 — Ingress controller installation  
 

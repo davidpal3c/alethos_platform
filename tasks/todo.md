@@ -6,7 +6,7 @@ Execution-ready tasks derived from the roadmap.
 
 # TASK-0001
 
-Title: Ubuntu Server installation and partition strategy
+Title: Ubuntu Server installation + RAID1 boot mirror
 
 Phase: Phase 0 — Platform Foundation
 
@@ -17,18 +17,24 @@ None
 
 Goal:
 
-Install Ubuntu Server on the boot tier and implement the RAID1 partition plan.
+Install Ubuntu Server on the boot tier and implement the UEFI + mdadm RAID1 boot mirror partition plan.
 
 Scope:
 
 • Install Ubuntu Server (headless)
-• Configure mdadm RAID1 for boot drives
-• Create partitions for:
+• Configure mdadm RAID1 for boot drives in UEFI mode
+• Create identical GPT partitions on both SSDs for:
 
   /boot/efi  
   /boot  
   /  
   /var
+
+• Create mdadm RAID1 arrays:
+
+  /dev/md0 → /boot  
+  /dev/md1 → /  
+  /dev/md2 → /var
 
 • Install GRUB on both disks
 • Verify boot resilience
@@ -81,22 +87,32 @@ Implement mountpoints for platform, database, and backup tiers.
 Scope:
 
 Platform tier mounts:
+  
+/platform (240GB NVMe mounted via UUID)  
+/platform/rancher  
+/platform/containerd  
+/platform/kubelet  
+/platform/prometheus  
+/platform/loki  
 
-/var/lib/rancher  
-/var/lib/containerd  
-/var/lib/kubelet  
-/var/lib/prometheus  
-/var/lib/loki  
+Bind mounts (runtime directories moved off OS disk):
+
+/platform/rancher → /var/lib/rancher  
+/platform/containerd → /var/lib/containerd  
+/platform/kubelet → /var/lib/kubelet  
+/platform/prometheus → /var/lib/prometheus  
+/platform/loki → /var/lib/loki  
 
 Database tier mounts:
 
+/data (1TB NVMe mounted via UUID)  
 /data/postgres  
 /data/postgres_wal  
 /data/redis  
 
 Backup tier mount:
 
-/backups
+/backups (1TB HDD mounted via UUID)
 
 Non-scope:
 
