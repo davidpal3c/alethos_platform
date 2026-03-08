@@ -16,3 +16,9 @@ workload-specific docs/
 .DS_Store
 .idea
 .vscode
+
+
+secrets/
+.env
+*.key
+*.pem
