@@ -3,6 +3,7 @@
     "context_name": "AlethosAPI Homelab Storage + Ops Context",
     "context_version": "2026-02-24",
     "status": "active",
+    "project-repo": "https://github.com/davidpal3c/alethos_platform.git"
     "intended_use": "Hand-off to another agent to continue design/implementation without losing decisions or rationale.",
     "scope": [
       "Homelab storage layout (mini production cluster style)",
@@ -14,7 +15,7 @@
     "change_log": [
       "Corrected boot RAID1 pair to mixed-model Intel SSD Pro 1500 180GB + Intel SSD 520 180GB (both ~90% health).",
       "Added exact mdadm RAID1 partition + mount plan for Ubuntu Server."
-    ]
+    ],
   },
 
   "homelab_identity": {
