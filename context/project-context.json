@@ -3,7 +3,7 @@
     "context_name": "AlethosAPI Homelab Storage + Ops Context",
     "context_version": "2026-02-24",
     "status": "active",
-    "project-repo": "https://github.com/davidpal3c/alethos_platform.git"
+    "project-repo": "https://github.com/davidpal3c/alethos_platform.git",
     "intended_use": "Hand-off to another agent to continue design/implementation without losing decisions or rationale.",
     "scope": [
       "Homelab storage layout (mini production cluster style)",
@@ -14,8 +14,9 @@
     ],
     "change_log": [
       "Corrected boot RAID1 pair to mixed-model Intel SSD Pro 1500 180GB + Intel SSD 520 180GB (both ~90% health).",
-      "Added exact mdadm RAID1 partition + mount plan for Ubuntu Server."
-    ],
+      "Added exact mdadm RAID1 partition + mount plan for Ubuntu Server.",
+      "Added storage_architecture tier map with explicit mountpoints and directories."
+    ]
   },
 
   "homelab_identity": {
@@ -46,6 +47,59 @@
     ]
   },
 
+  "storage_architecture": {
+    "boot_tier": {
+      "type": "RAID1",
+      "technology": "mdadm",
+      "drives": [
+        "Intel SSD Pro 1500 180GB",
+        "Intel SSD 520 180GB"
+      ],
+      "raid_arrays": {
+        "/dev/md0": "/boot",
+        "/dev/md1": "/",
+        "/dev/md2": "/var"
+      },
+      "partition_layout_per_disk": {
+        "efi": "512MB",
+        "boot": "2GB RAID member",
+        "root": "50GB RAID member",
+        "var": "remaining RAID member"
+      },
+      "efi_configuration": {
+        "primary": "/dev/sda1",
+        "secondary": "/dev/sdb1"
+      }
+    },
+
+    "platform_tier": {
+      "device": "WD PC SN530 NVMe 240GB",
+      "mount": "/platform",
+      "directories": [
+        "/platform/rancher",
+        "/platform/kubelet",
+        "/platform/containerd",
+        "/platform/prometheus",
+        "/platform/loki"
+      ]
+    },
+
+    "database_tier": {
+      "device": "1TB NVMe",
+      "mount": "/data",
+      "directories": [
+        "/data/postgres",
+        "/data/postgres_wal",
+        "/data/redis"
+      ]
+    },
+
+    "backup_tier": {
+      "device": "1TB HDD",
+      "mount": "/backups"
+    }
+  },
+
   "current_storage_layout": {
     "boot_system_drive": {
       "device": "Intel SATA SSD 180GB x2 (mixed models)",
@@ -74,7 +128,6 @@
       "reasoning": "RAID1 reduces downtime risk from a boot disk failure and isolates OS from workload churn. Mixed-model mirror is acceptable; mirror size equals smallest drive.",
       "failure_behavior_goal": "Single SSD failure does not take system down; bootable from either disk with GRUB installed on both and duplicated ESP."
     },
-
     "platform_tier": {
       "device": "WD PC SN530 240GB NVMe via PCIe x4 adapter (with heatsink)",
       "role": [
@@ -158,11 +211,11 @@
     ]
   },
 
-  "mountpoint_and_tier_intent": { 
+  "mountpoint_and_tier_intent": {
     "boot_tier_mounts_intent": {
       "must_have_mounts": [
         "/boot/efi",
-	"/boot"
+        "/boot",
         "/ (root)",
         "/var (separate from root to prevent log/container growth from bricking the OS)"
       ],
@@ -171,19 +224,20 @@
         "/var is the typical failure mode; isolate it",
         "k3s workload directories should be redirected off boot tier to NVMe"
       ]
-     },
-     "platform_tier_mount_target": {
-       "target_mounts": [
-         "/var/lib/rancher (k3s)",
-         "/var/lib/kubelet",
-         "/var/lib/containerd,
-         "/var/lib/prometheus",
-         "/var/lib/loki"
-       ],
-       "notes": [
-         "Platform tier is allowed to churn; protect DB and OS",
-         "Consider quotas/limits specifically for Prometheus/Loki retention"
-       ]
+    },
+    "platform_tier_mount_target": {
+      "target_mounts": [
+        "/platform/rancher",
+        "/platform/kubelet",
+        "/platform/containerd",
+        "/platform/prometheus",
+        "/platform/loki"
+      ],
+      "notes": [
+        "Platform tier is allowed to churn; protect DB and OS.",
+        "Consider bind mounts/symlinks from /var/lib/* paths as needed by k3s/components.",
+        "Consider quotas/limits specifically for Prometheus/Loki retention."
+      ]
     },
     "database_tier_mount_intent": {
       "target_mounts": [
@@ -192,8 +246,8 @@
         "/data/redis"
       ],
       "notes": [
-        "Even if WAL is on same physical NVMe, separating mountpoints prepares for future physical split and enforces operational discipline",
-        "Ensure WAL and data have monitoring and capacity alerts"
+        "Even if WAL is on same physical NVMe, separating mountpoints prepares for future physical split and enforces operational discipline.",
+        "Ensure WAL and data have monitoring and capacity alerts."
       ]
     },
     "backup_tier_mount_intent": {
@@ -201,39 +255,43 @@
         "/backups"
       ],
       "notes": [
-        "Backups should be write-once/read-rarely",
-        "Plan for future off-host sync (rsync to another machine or cloud bucket like S3)"
+        "Backups should be write-once/read-rarely.",
+        "Plan for future off-host sync (rsync to another machine or cloud bucket like S3)."
       ]
     }
   },
+
   "filesystem_strategy": {
     "decision_pending": true,
-    "candidates": ["ext4", "zfs"],
+    "candidates": [
+      "ext4",
+      "zfs"
+    ],
     "ext4": {
-        "pros": [
-          "Simple, stable, widely supported",
-          "Low operational overhead",
-          "Great default for Ubuntu Server"
-        ],
-        "cons": [
-          "Snapshots require LVM or filesystem-level tooling outside ext4",
-          "Less 'built-in' rollback ergonomics than ZFS"
-        ],
-        "likely_fit": "Best for MVP and simplicity-first approach."
-      },
-     "zfs": {
-        "pros": [
-          "Snapshots/rollback built in",
-          "Data integrity features",
-          "Great for disciplined snapshot/restore practice"
-        ],
-        "cons": [
-          "More operational complexity",
-          "Memory overhead considerations",
-          "Requires careful planning for boot/root-on-ZFS if chosen"
-        ],
-        "likely_fit": "Best if snapshot/rollback discipline is a top priority and complexity is acceptable."
-     },
+      "pros": [
+        "Simple, stable, widely supported",
+        "Low operational overhead",
+        "Great default for Ubuntu Server"
+      ],
+      "cons": [
+        "Snapshots require LVM or filesystem-level tooling outside ext4",
+        "Less 'built-in' rollback ergonomics than ZFS"
+      ],
+      "likely_fit": "Best for MVP and simplicity-first approach."
+    },
+    "zfs": {
+      "pros": [
+        "Snapshots/rollback built in",
+        "Data integrity features",
+        "Great for disciplined snapshot/restore practice"
+      ],
+      "cons": [
+        "More operational complexity",
+        "Memory overhead considerations",
+        "Requires careful planning for boot/root-on-ZFS if chosen"
+      ],
+      "likely_fit": "Best if snapshot/rollback discipline is a top priority and complexity is acceptable."
+    },
     "notes": "ext4 is default for simplicity; ZFS considered if snapshot/rollback discipline is prioritized and complexity acceptable.",
     "tier_by_tier_intent": {
       "boot_tier": "ext4 RAID1",
@@ -265,15 +323,16 @@
         "WAL archiving + base backups to /backups for PITR simulation"
       ],
       "candidate_plan": {
-      "wal_isolation": [
-        "Use dedicated mountpoint for WAL directory (even if same NVMe initially)",
-        "Monitor WAL directory size and write rate"
-      ],
-      "replication_simulation": [
-        "Option A: create a second Postgres instance (different data dir) to practice streaming replication locally",
-        "Option B: use periodic base backups + WAL archiving to /backups to simulate point-in-time recovery (PITR)",
-        "Decision depends on complexity tolerance and learning priority"
-      ]
+        "wal_isolation": [
+          "Use dedicated mountpoint for WAL directory (even if same NVMe initially)",
+          "Monitor WAL directory size and write rate"
+        ],
+        "replication_simulation": [
+          "Option A: create a second Postgres instance (different data dir) to practice streaming replication locally",
+          "Option B: use periodic base backups + WAL archiving to /backups to simulate point-in-time recovery (PITR)",
+          "Decision depends on complexity tolerance and learning priority"
+        ]
+      }
     },
     "snapshot_and_rollback_testing": {
       "status": "planned_not_finalized",
@@ -286,7 +345,7 @@
     }
   },
 
-  "observability_focus_for_storage": { 
+  "observability_focus_for_storage": {
     "status": "in_scope",
     "must_monitor": [
       "Disk usage per mountpoint (/, /var, platform mounts, /data/*, /backups)",
@@ -316,7 +375,7 @@
 
   "notes_for_next_agent": {
     "current_state_summary": [
-      "Boot tier is planned as RAID1 on two Intel SSDs (Pro 1500 Series + 520 Series)",
+      "Boot tier is planned as RAID1 on two Intel SSDs (Pro 1500 Series + 520 Series).",
       "Platform tier uses 240GB NVMe for k3s runtime + observability (high churn).",
       "Database tier uses 1TB NVMe for Postgres/PostGIS + Redis, with logical WAL isolation planned.",
       "Backup tier uses 1TB HDD mounted at /backups for dumps/archives and future off-host sync."
@@ -334,5 +393,3 @@
     ]
   }
 }
-
-

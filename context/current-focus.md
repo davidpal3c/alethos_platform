@@ -3,19 +3,39 @@
 Project: Alethos Platform Homelab  
 Phase: Phase 0 — Platform Foundation
 
+The project is currently focused on provisioning the base infrastructure node
+for the homelab platform before any workloads or APIs are deployed.
+
+This includes:
+
+• Ubuntu Server installation  
+• RAID1 boot tier configuration  
+• Storage tier mounting  
+• preparation for k3s platform workloads
+
 ---
 
 # Active Milestone
 
-Build a **stable platform node** capable of:
+Base Node Provisioning
 
-• running Kubernetes (k3s)
-• hosting observability stack
-• providing ingress routing
-• storing state across defined storage tiers
-• supporting future workload deployment
+The first objective is preparing the single-node infrastructure that will
+host the Alethos platform.
 
-The platform must reach a state where it behaves like a **single-node private cloud**.
+This includes establishing the four-tier storage architecture:
+
+BOOT TIER
+RAID1 SATA SSD mirror
+
+PLATFORM TIER
+240GB NVMe mounted at /platform
+
+DATABASE TIER
+1TB NVMe mounted at /data
+
+BACKUP TIER
+1TB HDD mounted at /backups
+
 
 ---
 
@@ -77,6 +97,7 @@ The phase completes when the platform node can:
 • host observability stack  
 • maintain tiered storage layout  
 • support deployment of a test container workload
+
 
 At that point the system transitions to:
 

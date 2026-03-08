@@ -34,39 +34,34 @@
     },
     "storage_devices": [
       {
-        "name": "Intel SSD Pro 1500 Series & Intel SSD 520 Series",
-	"capacity_gb": 180gb each,
-        "planned_role": "Boot + OS + base system (RAID1)",
-        "notes": [
-          "Chosen for reliability and predictable OS behavior.",
-          "Keeps the base OS isolated from higher-churn platform workloads and database I/O."
-        ]
+        "device": "sda",
+        "model": "Intel SSD Pro 1500",
+        "size": "180GB",
+        "role": "boot_raid_member"
       },
       {
-        "name": "WD PC SN530 240GB NVMe",
-        "type": "M.2 NVMe (via PCIe adapter)",
-        "planned_role": "Platform tier (k3s runtime data + observability stack data)",
-        "notes": [
-          "NVMe is appropriate for high-write workloads like metrics/log ingestion and container storage I/O.",
-          "Keeps platform write amplification away from OS disk."
-        ]
+        "device": "sdb",
+        "model": "Intel SSD 520",
+        "size": "180GB",
+        "role": "boot_raid_member"
       },
       {
-        "name": "1TB NVMe",
-        "type": "M.2 NVMe (via PCIe adapter)",
-        "planned_role": "Database tier (Postgres + Redis) including WAL",
-        "notes": [
-          "Dedicated fast storage for DB + WAL reduces latency and prevents platform logs/metrics from contending with DB writes."
-        ]
+        "device": "nvme0n1",
+        "model": "WD PC SN530",
+        "size": "240GB",
+        "role": "platform_tier"
       },
       {
-        "name": "1TB HDD",
-        "type": "3.5-inch SATA HDD (assumed)",
-        "planned_role": "Backups + archives",
-        "notes": [
-          "Large capacity and cost-effective for backups.",
-          "Not used for hot workloads; used for durability and retention."
-        ]
+        "device": "nvme1n1",
+        "model": "NVMe",
+        "size": "1TB",
+        "role": "database_tier"
+      },
+      {
+        "device": "sdc",
+        "model": "SATA HDD",
+        "size": "1TB",
+        "role": "backup_tier"
       }
     ],
     "constraints_and_assumptions": {
