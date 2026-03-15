@@ -15,7 +15,8 @@
     "change_log": [
       "Corrected boot RAID1 pair to mixed-model Intel SSD Pro 1500 180GB + Intel SSD 520 180GB (both ~90% health).",
       "Added exact mdadm RAID1 partition + mount plan for Ubuntu Server.",
-      "Added storage_architecture tier map with explicit mountpoints and directories."
+      "Added storage_architecture tier map with explicit mountpoints and directories.",
+      "2026-03-15 TASK-0001: Boot tier implemented on alethos-node-01. RAID1 over sda+sdc (md0→/boot, md1→/, md2→/var), dual ESP (sda1, sdc1). NVMe and sdb (HDD) reserved for TASK-0002."
     ]
   },
 
@@ -68,7 +69,13 @@
       },
       "efi_configuration": {
         "primary": "/dev/sda1",
-        "secondary": "/dev/sdb1"
+        "secondary": "/dev/sdc1"
+      },
+      "implementation_status": "implemented",
+      "device_mapping_alethos_node_01": {
+        "sda": "Intel SSD Pro 1500",
+        "sdc": "Intel SSD 520",
+        "sdb": "1TB HDD (backup tier only)"
       }
     },
 
@@ -119,6 +126,7 @@
       ],
       "health_estimate": "~90% both drives",
       "configuration_intent": "mdadm RAID1 mirror for OS/system layer",
+      "implementation_status": "implemented",
       "role": [
         "Ubuntu Server boot + OS",
         "System services",
@@ -206,9 +214,10 @@
       }
     ],
     "boot_resilience_steps": [
-      "Install GRUB to both disks (/dev/sda and /dev/sdb)",
-      "Duplicate/sync EFI partition contents to second disk periodically"
-    ]
+      "Install GRUB to both disks (/dev/sda and /dev/sdc)",
+      "Duplicate/sync EFI partition contents to second disk (sdc1) periodically"
+    ],
+    "implementation_status": "implemented"
   },
 
   "mountpoint_and_tier_intent": {

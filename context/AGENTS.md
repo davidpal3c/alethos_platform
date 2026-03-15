@@ -370,7 +370,7 @@ docs/platform-overview.md
 
 
 
-	4) Reviewer-Verifier Agent			(ChatGPT)
+	4) Reviewer-Verifier Agent			(Cursor)
 		
 		Purpose:
 			challenge the implementation before it is accepted
@@ -405,7 +405,7 @@ docs/platform-overview.md
 	
 
 
-	5) Documentation Agent				(ChatGPT)
+	5) Documentation Agent				(Cursor)
 
 		
 		Purpose:

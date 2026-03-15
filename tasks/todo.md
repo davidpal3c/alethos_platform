@@ -10,7 +10,7 @@ Title: Ubuntu Server installation + RAID1 boot mirror
 
 Phase: Phase 0 — Platform Foundation
 
-Status: Pending
+Status: Complete
 
 Dependencies:
 None

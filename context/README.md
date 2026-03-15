@@ -7,9 +7,9 @@ These files represent the current operational state of the platform.
 
 They are intentionally committed to the repository to:
 
-• ensure reproducibility
-• allow agents to reload project state
-• document architecture decisions
+• ensure reproducibility <br/>
+• allow agents to reload project state <br/>
+• document architecture decisions <br/>
 • support portfolio transparency
 
 Sensitive data such as credentials or private tokens must never
