@@ -78,7 +78,7 @@ Status: Pending
 
 Dependencies:
 
-TASK-0001
+TASK-0001 (complete)
 
 Goal:
 

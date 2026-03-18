@@ -224,7 +224,7 @@ todo.md         → executable work
 
 
 		
-	1) Context Curator Agent		(ChatGPT)
+	1) Context Curator Agent		(Cursor)
 
 		Reads:
 			context/project-context.json
@@ -252,7 +252,7 @@ todo.md         → executable work
 			identify which lessons and ADRs apply
 
 
-	2) Planner Agent			(ChatGPT)
+	2) Planner Agent			(Cursor)
 
 		Purpose:
 			Own the transition from strategy to execution

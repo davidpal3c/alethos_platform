@@ -397,12 +397,14 @@ These belong to **post-MVP evolution**.
 
 Phase 0 — Platform Foundation
 
-The system is currently focused on:
+**Phase 0A — Hardware + OS baseline:** **complete.**  
+Ubuntu Server (headless), UEFI, mdadm RAID1 boot tier, dual ESP, SSH. TASK-0001 closed.
 
-• hardware preparation  
-• storage layout  
-• OS installation  
-• Kubernetes bootstrap
+**Phase 0B — Storage architecture:** **active.**  
+Implement `/platform`, `/data`, `/backups`, UUID-based persistent mounts, and bind mounts for platform runtime paths (TASK-0002). Aligns with mini production cluster storage model above.
+
+**Phase 0C — Kubernetes platform bootstrap:** **next** after 0B.  
+k3s install and runtime relocation to platform tier (TASK-0003).
 
 No application workloads should be implemented yet.
 
@@ -410,13 +412,14 @@ No application workloads should be implemented yet.
 
 # Allowed Work Right Now
 
-Infrastructure only:
+Infrastructure only (Phase 0B emphasis):
 
-• hardware configuration  
-• OS installation  
-• filesystem layout  
-• storage mounts  
-• k3s bootstrap planning  
+• **Storage mounts** — platform NVMe, database NVMe, backup HDD; `fstab` by UUID  
+• **Directory layout and bind mounts** per `context/project-context.json` and `tasks/TASK_0002.md`  
+• Verification of mountpoints and free space per tier  
+• k3s bootstrap **planning** only until TASK-0002 is verified complete  
+
+Deferred until 0B is done: k3s install, cluster workloads, observability stack install.
 
 ---
 

@@ -1,41 +1,38 @@
 # Current Focus
 
 Project: Alethos Platform Homelab  
-Phase: Phase 0 — Platform Foundation
+Phase: Phase 0 — Platform Foundation  
+**Sub-phase (active): Phase 0B — Storage Architecture** ([roadmap](roadmap.md))
 
-The project is currently focused on provisioning the base infrastructure node
-for the homelab platform before any workloads or APIs are deployed.
+Phase 0A (Hardware + OS baseline) is **complete**: Ubuntu Server headless install, UEFI, mdadm RAID1 boot tier, dual ESP, SSH. **TASK-0001 is closed.**
 
-This includes:
+The project is now focused on **implementing the remaining storage tiers** (platform, database, backup) and bind mounts per design—before k3s or workloads. That work is **TASK-0002**.
 
-• Ubuntu Server installation  
-• RAID1 boot tier configuration  
-• Storage tier mounting  
-• preparation for k3s platform workloads
+Roadmap alignment:
+
+• **0A** — done (boot/OS)  
+• **0B** — **now** (physical/logical mounts: `/platform`, `/data`, `/backups`, UUID `fstab`, bind mounts)  
+• **0C** — next (k3s bootstrap after TASK-0002)
 
 ---
 
 # Active Milestone
 
-Base Node Provisioning
+**Storage tier implementation (Phase 0B)**
 
-The first objective is preparing the single-node infrastructure that will
-host the Alethos platform.
+Establish the four-tier storage architecture on the live node. Boot tier is already in place; remaining tiers:
 
-This includes establishing the four-tier storage architecture:
+BOOT TIER  
+Done (TASK-0001): RAID1 SATA SSD mirror, `/boot` / `/` / `/var` on md devices.
 
-BOOT TIER
-RAID1 SATA SSD mirror
+PLATFORM TIER  
+240GB NVMe → `/platform` + bind mounts to `/var/lib/*` (rancher, kubelet, containerd, prometheus, loki).
 
-PLATFORM TIER
-240GB NVMe mounted at /platform
+DATABASE TIER  
+1TB NVMe → `/data` (`postgres`, `postgres_wal`, `redis`).
 
-DATABASE TIER
-1TB NVMe mounted at /data
-
-BACKUP TIER
-1TB HDD mounted at /backups
-
+BACKUP TIER  
+1TB HDD → `/backups` (isolated from live IO).
 
 ---
 
@@ -43,28 +40,31 @@ BACKUP TIER
 
 Platform Infrastructure
 
-Focus areas:
+Focus areas (updated):
 
-1. Hardware preparation
-2. Storage tier configuration
-3. Ubuntu Server installation
-4. Kubernetes bootstrap
-5. Observability foundation
+1. ~~Hardware preparation~~ / ~~Ubuntu install~~ — complete (0A)  
+2. **Storage tier configuration (TASK-0002)** — immediate  
+3. Kubernetes bootstrap (TASK-0003) — after TASK-0002  
+4. Observability foundation — later phases  
+5. Ingress — later phases  
 
 ---
 
 # Active Tasks
 
-Immediate focus:
+**Completed**
 
-TASK-0001 — Ubuntu Server installation and disk partition plan  
-TASK-0002 — Storage tier mount layout  
+TASK-0001 — Ubuntu Server installation + RAID1 boot mirror  
 
-Queued within current phase:
+**Immediate focus**
+
+TASK-0002 — Storage tier mount configuration ([tasks/TASK_0002.md](../tasks/TASK_0002.md), [tasks/todo.md](../tasks/todo.md))
+
+**Queued (Phase 0C)**
 
 TASK-0003 — k3s bootstrap  
 
-Later phases:
+**Later phases**
 
 TASK-0004 — Observability stack baseline  
 TASK-0005 — Ingress controller installation  

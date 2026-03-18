@@ -384,16 +384,16 @@
 
   "notes_for_next_agent": {
     "current_state_summary": [
-      "Boot tier is planned as RAID1 on two Intel SSDs (Pro 1500 Series + 520 Series).",
-      "Platform tier uses 240GB NVMe for k3s runtime + observability (high churn).",
-      "Database tier uses 1TB NVMe for Postgres/PostGIS + Redis, with logical WAL isolation planned.",
-      "Backup tier uses 1TB HDD mounted at /backups for dumps/archives and future off-host sync."
+      "Phase 0A complete: TASK-0001 closed. Boot tier operational—UEFI, mdadm RAID1, dual ESP, headless Ubuntu Server, SSH.",
+      "Phase 0B active: TASK-0002—mount /platform (240GB NVMe), /data (1TB NVMe), /backups (1TB HDD); bind mounts from /platform to /var/lib/*; all persistent mounts via UUID.",
+      "Platform tier (when mounted) hosts k3s runtime + observability persistence; DB tier isolates Postgres/Redis/WAL from platform IO.",
+      "Backup tier on separate physical HDD; backups must not compete with live workloads."
     ],
     "most_important_next_decisions": [
-      "ext4 vs ZFS (per tier) based on complexity tolerance and snapshot discipline goals",
-      "exact partition/mount plan (especially moving k3s directories off boot tier)",
-      "backup rotation + restore verification automation",
-      "WAL archiving vs replication simulation approach"
+      "Complete TASK-0002: filesystem choice per tier if not already fixed (ext4 vs ZFS), partition labels, fstab + bind mount order and verification",
+      "ext4 vs ZFS (per tier) for remaining volumes if still open",
+      "backup rotation + restore verification automation (post-0B)",
+      "WAL archiving vs replication simulation approach (later)"
     ],
     "non_negotiables": [
       "Maintain separation of OS, platform churn, DB, and backups to reduce blast radius",
