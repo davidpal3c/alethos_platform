@@ -1,5 +1,9 @@
 # Final Expected Disk Layout (All Drives)
 
+> **alethos-node-01 (post TASK-0001):** Boot RAID1 = **sda** + **sdc** (Intel SSDs). **1TB backup HDD = sdb** → use **`/dev/sdb1`** (or discovered partition) for `/backups`. **Do not** put backups on **sdc** (RAID member). TASK-0002 and `context/project-context.json` are authoritative for Phase 0B.
+
+---
+
 ## Boot Tier — RAID1 SATA SSDs
 
 Two drives:

@@ -70,11 +70,15 @@ Verification Steps:
 
 # TASK-0002
 
-Title: Storage tier mount configuration
+Title: Storage tier mount configuration (Phase 0B)
 
-Phase: Phase 0 — Platform Foundation
+Phase: Phase 0 — Platform Foundation (sub-phase **0B — Storage Architecture**)
 
-Status: Pending
+Status: **Ready**
+
+Why now:
+
+0A is complete; k3s (0C) must not run container/runtime data on the boot RAID. Platform, database, and backup tiers must exist with UUID `fstab` and bind mounts before TASK-0003.
 
 Dependencies:
 
@@ -82,59 +86,45 @@ TASK-0001 (complete)
 
 Goal:
 
-Implement mountpoints for platform, database, and backup tiers.
+Implement physical/logical storage for platform, database, and backup tiers on **alethos-node-01**, aligned with `context/project-context.json`.
 
 Scope:
 
-Platform tier mounts:
-  
-/platform (240GB NVMe mounted via UUID)  
-/platform/rancher  
-/platform/containerd  
-/platform/kubelet  
-/platform/prometheus  
-/platform/loki  
-
-Bind mounts (runtime directories moved off OS disk):
-
-/platform/rancher → /var/lib/rancher  
-/platform/containerd → /var/lib/containerd  
-/platform/kubelet → /var/lib/kubelet  
-/platform/prometheus → /var/lib/prometheus  
-/platform/loki → /var/lib/loki  
-
-Database tier mounts:
-
-/data (1TB NVMe mounted via UUID)  
-/data/postgres  
-/data/postgres_wal  
-/data/redis  
-
-Backup tier mount:
-
-/backups (1TB HDD mounted via UUID)
+• **Discover** block devices with `lsblk -f` / `nvme list` (names can vary); confirm before destructive steps.  
+• **Platform tier:** single partition on 240GB WD SN530 NVMe → ext4 → `/platform`; create subdirs; bind-mount to `/var/lib/rancher`, `kubelet`, `containerd`, `prometheus`, `loki`.  
+• **Database tier:** single partition on 1TB NVMe → ext4 → `/data`; create `/data/postgres`, `postgres_wal`, `redis`.  
+• **Backup tier:** partition 1TB HDD → ext4 → `/backups`.  
+  **Live mapping (TASK-0001):** RAID boot = **sda + sdc**; **backup HDD = sdb** — do **not** use sdc for backups (sdc is RAID member).
 
 Non-scope:
 
-filesystem snapshot strategy
+• k3s install, ZFS/snapshot policy, backup automation, observability install.
 
-Files affected:
+Risks:
 
-docs/system-blueprint.md  
-docs/platform-overview.md  
-docs/build-reports/TASK-0002.md
+• Wrong disk selection can destroy RAID or OS — verify UUIDs and model/size before `mkfs`.  
+• Bind mounts before k3s: empty dirs OK; ensure `/etc/fstab` ordering (base mount before bind).
+
+Files / docs affected:
+
+`context/project-context.json` (post-verify)  
+`docs/system-blueprint.md`  
+`docs/platform-overview.md`  
+`docs/build-reports/TASK-0002.md`
 
 Acceptance Criteria:
 
-• mounts persist via fstab
-• NVMe tiers isolated from OS
-• backup tier accessible
+• `/platform`, `/data`, `/backups` mounted at boot via UUID in `/etc/fstab`.  
+• All five bind targets present and mounted after reboot.  
+• `df -h` shows expected capacities; boot RAID untouched.
 
 Verification:
 
-lsblk  
-df -h  
-mount
+`lsblk -f` · `findmnt` · `mount | grep -E 'platform|/data|backups'` · reboot test · optional `sudo systemd-analyze blame` if boot delay
+
+Builder output:
+
+Operator runbook (partition, mkfs, fstab, bind mounts, verification); no execution on node by Builder unless operator delegates.
 
 ---
 
