@@ -413,6 +413,7 @@ When adding a new lesson:
 - Add verification steps
 - Add tags for searchability
 
+
 **Group lessons by phase** (infra, API, deployment) whenever possible.
 
 ## Anti-Patterns
@@ -433,3 +434,4 @@ This file is the memory system of engineering discipline. It ensures that:
 - mistakes are not repeated
 - knowledge compounds over time
 - execution becomes faster and safer
+- technical concepts and concepts remain applicable, practical, and retrievable 
