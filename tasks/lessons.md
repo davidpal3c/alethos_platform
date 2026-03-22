@@ -216,6 +216,28 @@ Tags:
 
 ---
 
+## [INF-007] Verify HDD Identity Before Backup-Tier mkfs
+
+Context:
+TASK-0002: backup tier must live on the 1TB SATA HDD. On alethos-node-01 the second Intel RAID SSD is **`sdc`**, not a spare data disk — confusing **`sdb`** (HDD) with **`sdc`** (RAID) would destroy the OS mirror.
+
+Issue:
+Legacy docs sometimes placed backups on `sdc1` or described RAID across `sda`+`sdb`. Following wrong device names causes catastrophic `mkfs` or partition operations.
+
+Root Cause:
+Kernel device enumeration (`sdX`, `nvme*n1`) is not self-explanatory; model/size must be read from the block device, not from slot assumptions.
+
+Rule:
+Before any **destructive** operation on the backup tier (or any tier), run **`lsblk -o NAME,SIZE,MODEL,TYPE`** and **`lsblk -f`**. Confirm the **HDD** by capacity and model (e.g. ~931G WDC spinner vs Intel SSD). On alethos-node-01: **backup = `/dev/sdb`**, **RAID second disk = `/dev/sdc`**. Never `mkfs` on `sda`, `sdc`, or `md*` for tier setup.
+
+Verification:
+Operator checklist includes explicit device assignment (`$BACKUP_DEV=/dev/sdb`) and a hard stop if the chosen device would be a RAID member or wrong model class; `blkid` and `findmnt` match fstab UUIDs after changes.
+
+Tags:
+[storage, backup, disk, mkfs, raid, sdb, sdc, TASK-0002]
+
+---
+
 # Linux Operations
 
 ## [LINUX-001] Verify Mount Points After Configuration

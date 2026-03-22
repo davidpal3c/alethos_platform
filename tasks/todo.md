@@ -74,7 +74,7 @@ Title: Storage tier mount configuration (Phase 0B)
 
 Phase: Phase 0 — Platform Foundation (sub-phase **0B — Storage Architecture**)
 
-Status: **Ready**
+Status: **Complete**
 
 Why now:
 
