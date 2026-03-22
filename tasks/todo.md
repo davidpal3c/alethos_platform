@@ -110,7 +110,7 @@ Files / docs affected:
 `context/project-context.json` (post-verify)  
 `docs/system-blueprint.md`  
 `docs/platform-overview.md`  
-`docs/build-reports/TASK-0002.md`
+`docs/build-reports/BR-TASK-0002.md`
 
 Acceptance Criteria:
 
