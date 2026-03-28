@@ -34,7 +34,7 @@ After completing a task:
 
 ## Categories
 
-- [Infrastructure](#infrastructure)
+- [Infrastructure](#infrastructure) (includes [Phase 0: Platform Foundation](#phase-0-platform-foundation))
 - [Linux Operations](#linux-operations)
 - [Architecture](#architecture)
 - [Process / Workflow](#process--workflow)
@@ -71,6 +71,12 @@ Tags:
 ---
 
 # Infrastructure
+
+## Phase 0: Platform Foundation
+
+Lessons **INF-001** through **INF-007** were captured from Phase 0 OS, RAID, and storage-tier work (TASK-0001, TASK-0002) on **alethos-node-01**.
+
+---
 
 ## [INF-001] Always Wipe Disks Before RAID Setup
 
@@ -130,7 +136,7 @@ Tags:
 ## [INF-003] Define In-Scope and Out-of-Scope Devices for Follow-on Storage Tasks
 
 Context:
-TASK-0002 will partition and mount NVMe and HDD for platform/backups; the second boot SSD (e.g. sdc) must not be touched.
+TASK-0002 **implemented** this pattern on alethos-node-01: **in scope** — `nvme0n1`, `nvme1n1`, `sdb` (HDD backup); **out of scope** — `sda`, `sdc`, and `md*` (boot RAID). The task spec and `BR-TASK-0002` state this explicitly so the second RAID SSD (`sdc`) is never mistaken for a spare data disk.
 
 Issue:
 If a follow-on task describes "all non-boot disks" without naming them, an operator might include the second boot SSD and wipe the boot mirror.
@@ -291,6 +297,50 @@ Tags:
 
 ---
 
+## [LINUX-003] Order Base Mounts Before Bind Mounts in fstab
+
+Context:
+TASK-0002 added `/platform` plus five bind mounts to `/var/lib/*`. If bind lines appear before the line that mounts `/platform`, boot or `mount -a` can fail or mount in the wrong order.
+
+Issue:
+Bind targets require the source tree to exist on a mounted filesystem; wrong `fstab` ordering causes mount failures or silent skips.
+
+Root Cause:
+`fstab` is processed in order; operators appended binds without ensuring the parent mount came first.
+
+Rule:
+In `/etc/fstab`, list the **base** mount for a filesystem (e.g. `/platform`) **before** any `bind` entries whose source paths live under that mount. Use `bind,nofail` only after the base line is correct.
+
+Verification:
+`grep -v '^#' /etc/fstab` shows UUID (or device) lines for `/platform`, `/data`, `/backups` above the `/platform/...` bind lines; `sudo mount -a -v` succeeds.
+
+Tags:
+[fstab, bind, mount, TASK-0002, storage]
+
+---
+
+## [LINUX-004] Backup fstab Before Storage-Tier or Bind-Mount Changes
+
+Context:
+TASK-0002 appended multiple UUID lines and bind mounts to `/etc/fstab`; mistakes can prevent boot or leave tiers unmounted.
+
+Issue:
+A bad `fstab` edit can require rescue media or manual recovery.
+
+Root Cause:
+No timestamped or task-labeled copy of `fstab` before bulk edits.
+
+Rule:
+Before changing `/etc/fstab` for new tiers or binds, copy it aside (e.g. `sudo cp -a /etc/fstab /etc/fstab.pre-<task-or-date>`). Keep the backup on the node until the task is signed off; use it for rollback per runbook.
+
+Verification:
+A `fstab.pre-*` (or equivalent) exists matching the state before the edit; rollback procedure references restoring that file.
+
+Tags:
+[fstab, rollback, storage, TASK-0002]
+
+---
+
 
 # Architecture
 
@@ -352,6 +402,28 @@ Tags:
 
 ---
 
+## [PROC-002] Record Measured Disk Capacity, Not Nominal Labels
+
+Context:
+TASK-0002 review: task and legacy docs referred to a "1TB" database NVMe; on alethos-node-01 the data tier device is ~476.9G (512G-class SN530).
+
+Issue:
+Operators and planners underestimate or overestimate space; automation and alerts use wrong thresholds.
+
+Root Cause:
+Documentation copied nominal or marketing sizes instead of `lsblk` / vendor-reported capacity on the live node.
+
+Rule:
+After storage tasks, update blueprints and `context/project-context.json` with **measured** sizes from the node (e.g. `lsblk -o NAME,SIZE,MODEL`). If marketing labels are kept, add the measured value alongside (e.g. "512G-class, ~477G reported").
+
+Verification:
+Context or blueprint numbers match `lsblk` / `df -h` on the reference node within rounding; no orphan "1TB" claims where hardware is smaller.
+
+Tags:
+[documentation, capacity, storage, TASK-0002, context]
+
+---
+
 # Verification
 
 ## [VER-001] Always Validate System State Using Commands
@@ -373,6 +445,28 @@ Examples: `lsblk`, `df -h`, `cat /proc/mdstat`
 
 Tags:
 [verification, inspection]
+
+---
+
+## [VER-002] Match fstab UUIDs to the Device Nodes Actually Mounted
+
+Context:
+TASK-0002: live layout can be **whole-disk ext4** (`/dev/nvme1n1`) or **partition** (`/dev/nvme1n1p1`) depending on whether the operator formatted a partition or the full device.
+
+Issue:
+`fstab` may reference a UUID that belongs to `nvme1n1p1` while `findmnt` shows `nvme1n1`, or the reverse — boot or `mount -a` fails or mounts the wrong node.
+
+Root Cause:
+Assumed layout (always `p1`) without re-checking `blkid` and `findmnt` after `mkfs`.
+
+Rule:
+After formatting, run `blkid` on the **exact** nodes you will mount. Put those UUIDs in `fstab`. After `mount -a`, confirm `findmnt` source paths match the intended block devices (whole disk vs `p1`).
+
+Verification:
+For each tier mount, `findmnt -n -o SOURCE <mountpoint>` and `blkid` for that node agree with the `UUID=` line in `fstab`.
+
+Tags:
+[verification, fstab, uuid, nvme, TASK-0002]
 
 ---
 
@@ -456,4 +550,4 @@ This file is the memory system of engineering discipline. It ensures that:
 - mistakes are not repeated
 - knowledge compounds over time
 - execution becomes faster and safer
-- technical concepts and concepts remain applicable, practical, and retrievable 
+- knowledge stays practical and easy to retrieve
